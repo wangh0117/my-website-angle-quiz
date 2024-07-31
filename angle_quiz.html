@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angle Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+        }
+        #canvas {
+            border: 1px solid black;
+            touch-action: manipulation;
+        }
+        .container {
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+        input[type="text"] {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 18px;
+            width: 80%;
+            max-width: 300px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 15px 20px;
+            font-size: 18px;
+            width: 80%;
+            max-width: 200px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="canvas" width="400" height="400"></canvas>
+        <div>
+            <input type="text" id="userAnswer" placeholder="Enter your answer in degrees">
+            <button id="submitButton" onclick="checkAnswer()">Submit</button>
+            <button id="retryButton" onclick="generateAngle()" style="display:none;">Try Again</button>
+        </div>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        let correctAngle;
+        let angle1InRadians, angle2InRadians;
+        let length1, length2;
+
+        function generateAngle() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Define the origin point
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 2;
+
+            // Randomly generate lengths for the two lines
+            length1 = Math.floor(Math.random() * 100) + 50;
+            length2 = Math.floor(Math.random() * 100) + 50;
+
+            // Randomly generate angles for the two lines
+            const angle1 = Math.floor(Math.random() * 360);
+            const angle2 = Math.floor(Math.random() * 360);
+
+            // Convert angles to radians
+            angle1InRadians = angle1 * Math.PI / 180;
+            angle2InRadians = angle2 * Math.PI / 180;
+
+            // Draw first line
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX + length1 * Math.cos(angle1InRadians), originY - length1 * Math.sin(angle1InRadians));
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            // Draw second line
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX + length2 * Math.cos(angle2InRadians), originY - length2 * Math.sin(angle2InRadians));
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            // Calculate the angle between the two lines
+            correctAngle = Math.abs(angle1 - angle2);
+            if (correctAngle > 180) correctAngle = 360 - correctAngle;
+
+            // Hide result and retry button, show submit button
+            document.getElementById('result').textContent = '';
+            document.getElementById('userAnswer').value = '';
+            document.getElementById('submitButton').style.display = 'inline-block';
+            document.getElementById('retryButton').style.display = 'none';
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('userAnswer').value);
+            const resultDiv = document.getElementById('result');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            if (isNaN(userAnswer)) {
+                resultDiv.textContent = 'Please enter a valid number.';
+                return;
+            }
+
+            // Define the origin point
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 2;
+
+            // Convert user answer to radians
+            const userAngleInRadians = userAnswer * Math.PI / 180;
+
+            // Determine the direction of user's angle to be closer to the second line
+            const angleDiff = Math.abs(correctAngle - userAnswer);
+            let finalAngleInRadians;
+            if (angleDiff > 180) {
+                finalAngleInRadians = angle1InRadians - userAngleInRadians;
+            } else {
+                finalAngleInRadians = angle1InRadians + userAngleInRadians;
+            }
+
+            // Draw user's angle in red
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX + length2 * Math.cos(finalAngleInRadians), originY - length2 * Math.sin(finalAngleInRadians));
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+
+            // Calculate the angle difference
+            const angleDifference = Math.abs(correctAngle - userAnswer);
+
+            // Check the user's answer
+            if (angleDifference <= 2) {
+                resultDiv.textContent = `Correct! The angle is ${correctAngle} degrees.`;
+            } else {
+                resultDiv.textContent = `Incorrect. The correct angle is ${correctAngle} degrees. You entered ${userAnswer} degrees.`;
+            }
+
+            // Show retry button, hide submit button
+            document.getElementById('submitButton').style.display = 'none';
+            document.getElementById('retryButton').style.display = 'inline-block';
+        }
+
+        // Initial call to generate the first angle
+        generateAngle();
+    </script>
+</body>
+</html>
